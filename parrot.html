@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>WebAPI sample - fetch/post</title>
+</head>
+<body>
+    <button id='click'>Put message to AWS lambda</button>
+    <div id='msg'>
+        <script>
+            const button = document.getElementById('click');
+            const data = { "userid": "A123", "point": 70 };
+            const param = {
+                method: "POST",
+                body: JSON.stringify(data)
+            };
+            button.addEventListener('click', () => {
+                fetch("https://l5upk6tzxk.execute-api.us-east-1.amazonaws.com/Upload_v2", param)
+                    .then(response => {
+                        return response.json();
+                    })
+                    .then(result => {
+                        msg.innerText = JSON.stringify(result);
+                    })
+                    .catch((e) => {
+                        console.log(e)
+                    })
+            });
+        </script>
+</body>
+</html>

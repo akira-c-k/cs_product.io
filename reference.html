@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>lambdaのデモ</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+<form>
+    <input type="number" id="number1">
+    <input type="number" id="number2">
+</form>
+<button id="btn">送信する</button>
+</body>
+</html>
+ 
+<script>
+    $(function () {
+        $('button').on('click',function () {
+        
+        //追加2：配列に値を追加
+            var arr = [$('#number1').val(),$('#number2').val()];
+            var submitData = JSON.stringify(arr);
+        
+            $.ajax('https://l5upk6tzxk.execute-api.us-east-1.amazonaws.com/Upload_v2', {
+                type: 'post',
+                data: submitData,
+                dataType: "json",
+            }).then(function (data) {
+                console.log(data);
+            }).fail(function (error) {
+                console.log(error);
+            })
+        });
+    });
+
+    // btn.addEventListener('click', () => {
+    //     const data = { message: text.value };
+    //     fetch('https://l5upk6tzxk.execute-api.us-east-1.amazonaws.com/Upload_v2', {
+    //         method: 'POST',
+    //         body: JSON.stringify(data),
+    //     })
+    //     .then((response) => response.json())
+    //     .then((data) => {
+    //         console.log(data.message);
+    //     })
+    //     .catch((error) => {
+    //         console.error(error);
+    //     });
+    // });
+</script>

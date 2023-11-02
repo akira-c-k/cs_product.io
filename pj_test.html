@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>pj_test</title>
+    <style>
+        html {
+            background-color: rgb(131,131,131);
+        }
+
+        body {
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .from_0_to_10 {
+            width: 100%;
+            height: 10%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: left;
+        }
+
+        .from_10_to_100 {
+            width: 100%;
+            height: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #draggable {
+            width: 30px;
+            height: 30px;
+            background-color: blueviolet;
+            position: absolute;
+            cursor: pointer;
+        }
+
+        .text {
+            width: 200px;
+            height: 40px;
+            margin: 10px;
+        }
+
+        .btn {
+            width: 80px;
+            height: 40px;
+            margin: 10px;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+    <div class="from_0_to_10">
+        <input type="text" class="text" id="text">
+        <button class="btn" id="btn">submit</button>
+    </div>
+    <div class="from_10_to_100">
+        <div id="draggable"></div>
+    </div>
+
+
+    <script>
+        const btn = document.getElementById('btn');
+
+        function btn_action(e) {
+            e.preventDefault();
+            let text = document.getElementById('text');
+            let msg = JSON.stringify(text.value);
+            $.post('https://1ogdvrq2pd.execute-api.us-east-1.amazonaws.com/UploadGateway', {
+                    'data': msg,
+                }, function(data) {
+                    console.log('success');
+                    console.log(msg);
+                }).fail(function(xhr, textStatus, error) {
+                    console.log('error');
+                    console.log(msg);
+                });   
+        };
+        btn.onclick = btn_action;
+
+        const draggableElement = document.getElementById('draggable');
+        let offsetX, offsetY;
+        let isDragging = false;
+
+        function getCoordinates() {
+            const rect = draggableElement.getBoundingClientRect();
+            const x = rect.left;
+            const y = rect.top;
+            console.log(`X座標: ${x}, Y座標: ${y}`);
+        }
+        setInterval(getCoordinates, 1000); // 1000ミリ秒ごとに取得
+
+        draggableElement.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const rect = draggableElement.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const x = e.clientX - offsetX;
+            const y = e.clientY - offsetY;
+            draggableElement.style.left = x + 'px';
+            draggableElement.style.top = y + 'px';
+        });
+    </script>
+</body>
+</html>
