@@ -25,9 +25,18 @@
             justify-content: left;
         }
 
-        .from_10_to_100 {
+        .from_10_to_20 {
             width: 100%;
-            height: 90%;
+            height: 10%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: left;
+        }
+
+        .from_20_to_100 {
+            width: 100%;
+            height: 80%;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -42,34 +51,55 @@
             cursor: pointer;
         }
 
-        .text {
+        .input_text {
             width: 200px;
             height: 40px;
             margin: 10px;
         }
 
-        .btn {
+        .input_btn {
             width: 80px;
             height: 40px;
             margin: 10px;
         }
 
-        .tips {
+        .input_tips {
+            display: none;
+        }
+
+        .output_text {
+            width: 200px;
+            height: 40px;
+            margin: 10px;
+        }
+
+        .output_btn {
+            width: 80px;
+            height: 40px;
+            margin: 10px;
+        }
+
+        .output_tips {
             display: none;
         }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 </head>
 <body>
+
     <div class="from_0_to_10">
-        <input type="text" class="text" id="text">
-        <button class="btn" id="btn">submit</button>
-        <span class="tips" id="tips">Success!</span>
+        <input type="input_text" class="input_text" id="input_text">
+        <button class="input_btn" id="input_btn">upload</button>
+        <span class="input_tips" id="input_tips">Success!</span>
     </div>
-    <div class="from_10_to_100">
+    <div class="from_10_to_20">
+        <input type="output_text" class="output_text" id="output_text">
+        <button class="output_btn" id="output_btn">cast</button>
+        <span class="output_tips" id="output_tips">Success!</span>
+    </div>
+    <div class="from_20_to_100">
         <div id="draggable"></div>
     </div>
-
 
     <script>
         // save coordinate data
@@ -79,7 +109,7 @@
         let xCoordinates = [];
         let yCoordinates = [];
 
-        function getCoordinates() {
+        function GetCoordinates() {
             const rect = draggableElement.getBoundingClientRect();
             const x = rect.left;
             const y = rect.top;
@@ -89,7 +119,7 @@
             // console.log(xCoordinates);
             // console.log(yCoordinates);
         }
-        setInterval(getCoordinates, 10000); // save data per 10000ms
+        setInterval(GetCoordinates, 100); // save data per 100ms
 
         // mousemove function
         draggableElement.addEventListener('mousedown', (e) => {
@@ -110,13 +140,13 @@
         });
 
         // Post data
-        const btn = document.getElementById('btn');
-        const tips = document.getElementById('tips');
-        function btn_action(e) {
+        const input_btn = document.getElementById('input_btn');
+        const input_tips = document.getElementById('input_tips');
+        function input_btn_action(e) {
             e.preventDefault();
-            let text = document.getElementById('text');
+            let input_text = document.getElementById('input_text');
             let data = {
-                'key': text.value,
+                'key': input_text.value,
                 'x': xCoordinates,
                 'y': yCoordinates
             };
@@ -130,13 +160,52 @@
                 })
                 .then(result => {
                     console.log(JSON.stringify(data));
-                    tips.style.display = "block";
+                    input_tips.style.display = "block";
                 })
                 .catch((e) => {
                     console.log(e)
-                })
+                });
         };
-        btn.onclick = btn_action;
+        input_btn.onclick = input_btn_action;
+
+        // Cast the movement of the assigned objects
+        let xDashCoordinates = [];
+        let yDashCoordinates = [];
+        function CastCoordinates() {
+            if (currentIndex < xDashCoordinates.length && currentIndex < yDashCoordinates.length) {
+                const x = xDashCoordinates[currentIndex];
+                const y = yDashCoordinates[currentIndex];
+                draggableElement.style.left = x + 'px';
+                draggableElement.style.top = y + 'px';
+                currentIndex++;
+            };
+        };
+        const output_btn = document.getElementById('output_btn');
+        const output_tips = document.getElementById('output_tips');
+        let currentIndex = 0;
+        function output_btn_action(e) {
+            e.preventDefault();
+            let output_text = document.getElementById('output_text');
+            let data = {
+                'key': output_text.value
+            };
+            let param = {
+                method: "POST",
+                body: JSON.stringify(data)   
+            };
+            fetch('https://ebire4gg53.execute-api.us-east-1.amazonaws.com/Read_v2', param)
+                .then(response => response.json())
+                .then(data => {
+                    output_tips.style.display = "block";
+                    xDashCoordinates = data.x;
+                    yDashCoordinates = data.y;
+                    setInterval(CastCoordinates, 100);
+                })
+                .catch(error => {
+                    console.error('msg: ', error);
+                });
+        };
+        output_btn.onclick = output_btn_action;
 
     </script>
 </body>
