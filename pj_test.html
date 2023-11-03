@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>pj_test</title>
+    <style>
+        html {
+            background-color: rgb(131,131,131);
+        }
+
+        body {
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .from_0_to_10 {
+            width: 100%;
+            height: 10%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: left;
+        }
+
+        .from_10_to_100 {
+            width: 100%;
+            height: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #draggable {
+            width: 30px;
+            height: 30px;
+            background-color: blueviolet;
+            position: absolute;
+            cursor: pointer;
+        }
+
+        .text {
+            width: 200px;
+            height: 40px;
+            margin: 10px;
+        }
+
+        .btn {
+            width: 80px;
+            height: 40px;
+            margin: 10px;
+        }
+
+        .tips {
+            display: none;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+    <div class="from_0_to_10">
+        <input type="text" class="text" id="text">
+        <button class="btn" id="btn">submit</button>
+        <span class="tips" id="tips">Success!</span>
+    </div>
+    <div class="from_10_to_100">
+        <div id="draggable"></div>
+    </div>
+
+
+    <script>
+        // save coordinate data
+        const draggableElement = document.getElementById('draggable');
+        let offsetX, offsetY;
+        let isDragging = false;
+        let xCoordinates = [];
+        let yCoordinates = [];
+
+        function getCoordinates() {
+            const rect = draggableElement.getBoundingClientRect();
+            const x = rect.left;
+            const y = rect.top;
+            xCoordinates.push(x);
+            yCoordinates.push(y);
+            // console.log(`X座標: ${x}, Y座標: ${y}`);
+            // console.log(xCoordinates);
+            // console.log(yCoordinates);
+        }
+        setInterval(getCoordinates, 10000); // save data per 10000ms
+
+        // mousemove function
+        draggableElement.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const rect = draggableElement.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+        });
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const x = e.clientX - offsetX;
+            const y = e.clientY - offsetY;
+            draggableElement.style.left = x + 'px';
+            draggableElement.style.top = y + 'px';
+        });
+
+        // Post data
+        const btn = document.getElementById('btn');
+        const tips = document.getElementById('tips');
+        function btn_action(e) {
+            e.preventDefault();
+            let text = document.getElementById('text');
+            let data = {
+                'key': text.value,
+                'x': xCoordinates,
+                'y': yCoordinates
+            };
+            let param = {
+                method: "POST",
+                body: JSON.stringify(data)   
+            };
+            fetch("https://l5upk6tzxk.execute-api.us-east-1.amazonaws.com/Upload_v2", param)
+                .then(response => {
+                    return response.json();
+                })
+                .then(result => {
+                    console.log(JSON.stringify(data));
+                    tips.style.display = "block";
+                })
+                .catch((e) => {
+                    console.log(e)
+                })
+        };
+        btn.onclick = btn_action;
+
+    </script>
+</body>
+</html>
