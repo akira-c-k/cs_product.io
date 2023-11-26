@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <title>Mouse座標取得</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        html, body{
+            text-align: center;
+            background-color: #fafafa;
+            font-size: 20px;
+            color: #333;
+        }
+        #mycanvas{
+            border: 1px solid #333;
+        }
+        .input {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+        .input_text {
+            width: 500px;
+            height: 40px;
+            margin: 10px;
+        }
+        .input_btn {
+            width: 80px;
+            height: 40px;
+            margin: 10px;
+        }
+        .input_tips {
+            display: none;
+        }
+        .output {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+        .output_text {
+            width: 500px;
+            height: 40px;
+            margin: 10px;
+        }
+        .output_btn {
+            width: 80px;
+            height: 40px;
+            margin: 10px;
+        }
+        .output_tips {
+            display: none;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  </head>
+
+  <body>
+    <div class="input">
+        <input type="input_text" class="input_text" id="input_text" placeholder="キーワードを入力してuploadを押すとキャンバスが保存されます">
+        <button class="input_btn" id="input_btn">upload</button>
+        <span class="input_tips" id="input_tips">Success!</span>
+    </div>
+    <div class="output">
+        <input type="output_text" class="output_text" id="output_text" placeholder="入力されたキーワードに該当する保存内容が投影されます">
+        <button class="output_btn" id="output_btn">cast</button>
+        <span class="output_tips" id="output_tips">Success!</span>
+    </div>
+    <div>
+        <canvas width="800px" height="700px" id="mycanvas"></canvas>
+    </div>
+
+    <script>
+        // prepare coordinate-list
+        let xCoordinates = [];
+        let yCoordinates = [];
+
+        // drawing
+        (function(){
+            window.onload = function(){
+            let canvas = document.getElementById('mycanvas');
+            if(!canvas || !canvas.getContext){
+                return false;
+            }
+            let ctx = canvas.getContext('2d');
+
+            // get the coordinates of mouse
+            let mouse = {
+                startX: 0,
+                startY: 0,
+                x: 0,
+                y: 0,
+                color: "black",
+                isDrawing: false
+            };
+            let borderWidth = 1;
+
+            canvas.addEventListener("mousemove", function(e){
+                // prepare the data
+                let rect = e.target.getBoundingClientRect();
+                mouse.x = e.clientX - rect.left - borderWidth;
+                mouse.y = e.clientY - rect.top - borderWidth;
+
+                // draw on the canvas if "isDraw" is true
+                if (mouse.isDrawing){
+                    ctx.beginPath();
+                    ctx.moveTo(mouse.startX, mouse.startY);
+                    ctx.lineTo(mouse.x, mouse.y);
+                    ctx.strokeStyle = mouse.color;
+                    ctx.stroke();
+                    mouse.startX = mouse.x;
+                    mouse.startY = mouse.y;
+                    
+                    // push!
+                    console.log(`X座標: ${mouse.x}, Y座標: ${mouse.y}`);
+                    xCoordinates.push(mouse.x);
+                    yCoordinates.push(mouse.y);
+                }
+            });
+
+            // change "isDraw" into true
+            canvas.addEventListener("mousedown", function(e){
+                mouse.isDrawing = true;
+                mouse.startX = mouse.x;
+                mouse.startY = mouse.y;
+
+                // push!
+                console.log(`X座標: ${mouse.x}, Y座標: ${mouse.y}`);
+                xCoordinates.push(mouse.x);
+                yCoordinates.push(mouse.y);
+            });
+
+            // change "isDraw" into false
+            canvas.addEventListener("mouseup", function(e){
+                mouse.isDrawing = false;
+            });
+            canvas.addEventListener('mouseleave', function(e){
+                mouse.isDrawing = false;
+            });
+
+        }})();
+
+        // Post data
+        const input_btn = document.getElementById('input_btn');
+        const input_tips = document.getElementById('input_tips');
+        function input_btn_action(e) {
+            e.preventDefault();
+            let input_text = document.getElementById('input_text');
+            let data = {
+                'key': input_text.value,
+                'x': xCoordinates,
+                'y': yCoordinates
+            };
+            let param = {
+                method: "POST",
+                body: JSON.stringify(data)   
+            };
+            fetch("https://l5upk6tzxk.execute-api.us-east-1.amazonaws.com/Upload_v2", param)
+                .then(response => {
+                    return response.json();
+                })
+                .then(result => {
+                    console.log(JSON.stringify(data));
+                    input_tips.style.display = "block";
+                })
+                .catch((e) => {
+                    console.log(e)
+                });
+        };
+        input_btn.onclick = input_btn_action;
+
+        // Cast the movement of the assigned objects
+        let xDashCoordinates = [];
+        let yDashCoordinates = [];
+
+        // Function to automatically draw based on stored coordinates
+        function autoDraw() {
+            let i = 0;
+            const intervalId = setInterval(function () {
+                if (i >= xDashCoordinates.length - 1) {
+                    clearInterval(intervalId); // Stop the interval when all iterations are done
+                    return;
+                }
+
+                let canvas = document.getElementById('mycanvas');
+                if (!canvas || !canvas.getContext) {
+                    return false;
+                }
+                let ctx = canvas.getContext('2d');
+                ctx.beginPath();
+                // if coordinates are far from ones just before, drawing doesn't happen
+                if (Math.abs(xDashCoordinates[i] - xDashCoordinates[i - 1]) > 0.5 || Math.abs(yDashCoordinates[i] - yDashCoordinates[i - 1]) > 0.5) {
+                    ctx.moveTo(xDashCoordinates[i], yDashCoordinates[i]);
+                    ctx.lineTo(xDashCoordinates[i + 1], yDashCoordinates[i + 1]);
+                } else {
+                    ctx.moveTo(xDashCoordinates[i], yDashCoordinates[i]);
+                    ctx.lineTo(xDashCoordinates[i], yDashCoordinates[i]);
+                }
+                ctx.strokeStyle = 'blue';
+                ctx.stroke();
+
+                i++;
+
+                // Wait for 0.5 seconds before the next iteration
+                setTimeout(function () {
+                    // Continue to the next iteration
+                }, 50);
+            }, 50); // Set an interval of 0.5 seconds between each iteration
+        }
+
+        const output_btn = document.getElementById('output_btn');
+        const output_tips = document.getElementById('output_tips');
+        let currentIndex = 0;
+        function output_btn_action(e) {
+            e.preventDefault();
+            let output_text = document.getElementById('output_text');
+            let data = {
+                'key': output_text.value
+            };
+            let param = {
+                method: "POST",
+                body: JSON.stringify(data)   
+            };
+            fetch('https://ebire4gg53.execute-api.us-east-1.amazonaws.com/Read_v2', param)
+                .then(response => response.json())
+                .then(data => {
+                    output_tips.style.display = "block";
+                    xDashCoordinates = data.x;
+                    yDashCoordinates = data.y;
+                    autoDraw();
+                })
+                .catch(error => {
+                    console.error('msg: ', error);
+                });
+        };
+        output_btn.onclick = output_btn_action;
+
+    </script>
+  </body>
+  
+</html>
