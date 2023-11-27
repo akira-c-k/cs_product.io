@@ -2,17 +2,14 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8">
-    <title>Mouse座標取得</title>
+    <title>FudeMemo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         html, body{
             text-align: center;
-            background-color: #fafafa;
+            background-color: rgb(242,242,242);
             font-size: 20px;
             color: #333;
-        }
-        #mycanvas{
-            border: 1px solid #333;
         }
         .input {
             display: flex;
@@ -52,6 +49,20 @@
         .output_tips {
             display: none;
         }
+        .clear {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+        .clear_btn {
+            width: 80px;
+            height: 40px;
+            margin: 10px;
+        }
+        #mycanvas{
+            border: 1px solid #333;
+        }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   </head>
@@ -67,8 +78,11 @@
         <button class="output_btn" id="output_btn">cast</button>
         <span class="output_tips" id="output_tips">Success!</span>
     </div>
+    <div class="clear">
+        <button class="clear_btn" id="clear_btn">clear</button>
+    </div>
     <div>
-        <canvas width="800px" height="700px" id="mycanvas"></canvas>
+        <canvas width="800px" height="600px" id="mycanvas"></canvas>
     </div>
 
     <script>
@@ -121,6 +135,7 @@
 
             // change "isDraw" into true
             canvas.addEventListener("mousedown", function(e){
+                console.log("isDraw True");
                 mouse.isDrawing = true;
                 mouse.startX = mouse.x;
                 mouse.startY = mouse.y;
@@ -133,9 +148,11 @@
 
             // change "isDraw" into false
             canvas.addEventListener("mouseup", function(e){
+                console.log("isDraw False");
                 mouse.isDrawing = false;
             });
             canvas.addEventListener('mouseleave', function(e){
+                console.log("isDraw False");
                 mouse.isDrawing = false;
             });
 
@@ -190,7 +207,7 @@
                 let ctx = canvas.getContext('2d');
                 ctx.beginPath();
                 // if coordinates are far from ones just before, drawing doesn't happen
-                if (Math.abs(xDashCoordinates[i] - xDashCoordinates[i - 1]) > 0.5 || Math.abs(yDashCoordinates[i] - yDashCoordinates[i - 1]) > 0.5) {
+                if (Math.abs(xDashCoordinates[i + 1] - xDashCoordinates[i]) <= 2.0 || Math.abs(yDashCoordinates[i + 1] - yDashCoordinates[i]) <= 2.0) {
                     ctx.moveTo(xDashCoordinates[i], yDashCoordinates[i]);
                     ctx.lineTo(xDashCoordinates[i + 1], yDashCoordinates[i + 1]);
                 } else {
@@ -236,6 +253,25 @@
         };
         output_btn.onclick = output_btn_action;
 
+        const clear_btn = document.getElementById('clear_btn');
+        clear_btn.addEventListener("click", () => {
+            let canvas = document.getElementById('mycanvas');
+            if (!canvas) {
+                console.error("キャンバスが見つかりません");
+                return;
+            }
+
+            let ctx = canvas.getContext('2d');
+            if (!ctx) {
+                console.error("2D コンテキストを取得できません");
+                return;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            input_tips.style.display = "none";
+            output_tips.style.display = "none";
+            alert("キャンバスをクリアしました");
+        });
     </script>
   </body>
   
