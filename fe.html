@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <title>ふでメモ</title>
+        <style>
+            body {
+                margin: 0px;
+                overflow: hidden;
+                background-color: #FFFFBB;
+            }
+            #canvas {
+                background-color: #FFFFFF;
+                display: block;
+                margin: 0 auto;
+                border: 1px solid black;
+            }
+            #controls {
+                text-align: center;
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+            }
+            #keywordInput {
+                padding: 0.8em 2em;
+                background-color: #FFFFFF;
+                border-radius: 10px;
+                text-decoration: none; /* 文字の下線を消す */
+            }
+            #actionSelect {
+                padding: 0.8em 2em;
+                background-color: #FFFFFF;
+                border-radius: 10px;
+                text-decoration: none; /* 文字の下線を消す */
+            }
+            #openList {
+                position: relative;
+                top: 0;
+                left: 0;
+                width: 40px;
+                height: 40px;
+            }
+            .topHalf {
+                margin-top: 0px;
+                margin-bottom: 10px;
+            }
+            .bottomHalf {
+                margin-top: 10px;
+                margin-bottom: 5px;
+            }
+            .btn {
+                display: inline-block;
+                padding: 0.8em 3em;
+                border-radius: 60px;
+                color: #fff;
+                cursor: pointer;
+                text-decoration: none; /* 文字の下線を消す */
+            }
+            .btn:hover {
+                box-shadow: none;
+                transform: translateY(5px);
+            }
+            .btn:active {
+                box-shadow: none;
+                transform: translateY(5px);
+            }
+            .btn-border-red {
+                background-color: #e3364a;
+                box-shadow: 0 5px 0 #ca1c30;
+            }
+            .btn-border-blue {
+                background-color: hsl(220, 70%, 51%);
+                box-shadow: 0 5px 0 hsl(200, 70%, 41%);
+            }
+        </style>
+    </head>
+    <body>
+        <!--------------HTML-------------->
+        <div>
+            <button id="openList">三</button>
+        </div>
+        <div id="controls">
+            <div class="topHalf">
+                <input type="text" id="keywordInput" placeholder="あいことばを入れてね">
+                <select id="actionSelect">
+                    <option value="memory">おぼえる</option>
+                    <option value="remind">おもいだす</option>
+                </select>
+                <button class="btn btn-border-red" id="actionButton">おす</button>
+            </div>
+            <div class="bottomHalf">
+                <button class="btn btn-border-blue" id="reloadButton">けす</button>
+            </div>
+        </div>
+        <canvas id="canvas"></canvas>
+        <!--------------HTML-------------->
+
+        <!--------------JavaScript-------------->
+        <script>
+            "use strict";
+            var ctx;
+            window.onload = main;
+            let count = 0;
+            let position = [0,0];
+            let preposition;
+            let drawInterval;
+            const keywordInput = document.getElementById("keywordInput");
+            const actionSelect = document.getElementById("actionSelect");
+            const actionButton = document.getElementById("actionButton");
+            const reloadButton = document.getElementById("reloadButton");
+            const openList = document.getElementById("openList");
+            var recording = true;
+            var record = {
+                keyword: "",
+                actions: []
+            };
+            var recordStartTime;
+            var getAcctionsURL="https://6t5jntxdp8.execute-api.us-east-1.amazonaws.com/Read_v3";
+            var setAcctionsURL="https://uy9iq8zfl7.execute-api.us-east-1.amazonaws.com/Upload_v3";
+            let flag = false;
+
+            ///////////////
+            // 関数の設定 //
+            //////////////
+
+            // キャンバスの設定
+            function main() {
+                // キャンバスのサイズと位置を設定する関数
+                function resizeCanvas() {
+                    canvas.width = window.innerWidth * 0.8;
+                    canvas.height = canvas.width*0.66;
+                    canvas.style.position = "absolute";
+                    canvas.style.top = "20%";
+                    canvas.style.left = "10%";
+                }
+                // ウィンドウのリサイズイベントに対応する
+                window.addEventListener('resize', resizeCanvas, false);
+                // 初期のキャンバスサイズと位置を設定
+                resizeCanvas();
+                ctx = canvas.getContext("2d");
+                ctx.strokeStyle = "#FF0000";
+                ctx.lineWidth = 3;
+                ctx.lineCap = "round";
+                canvas.onmousedown = mouseDown;
+                canvas.onmousemove = mouseMove;
+                canvas.onmouseup = mouseUp;
+            };
+            // レコーディングの開始
+            function startRecording() {
+                recording = true;
+                console.log("Start");
+                // ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // record.actions = [];
+                recordStartTime = Date.now();
+            };
+            // レコーディングの停止
+            function stopRecording() {
+                recording = false;
+                console.log("End");
+                // let keyword = keywordInput.value;
+                // record.keyword = keyword                
+                console.log(record);
+            };
+            // mouseDownアクションの設定
+            function mouseDown(e) {
+                startRecording();
+                flag = true;
+                ctx.beginPath();
+                ctx.moveTo(e.offsetX, e.offsetY);
+                position = [e.offsetX, e.offsetY];
+                preposition = position;
+                drawInterval=setInterval(draw,20);
+                count++;
+                console.log(count);
+                recordAction('start', position);
+            };
+            // mouseMoveアクションの設定
+            function mouseMove(e) {
+                if (flag==true) {
+                    position = [e.offsetX, e.offsetY];
+                }
+            };
+            // mouseUpアクションの設定
+            function mouseUp(e) {
+                if (flag==true) {
+                    ctx.strokeStyle = "#FF0000";
+                    ctx.lineWidth = 3;
+                    ctx.lineCap = "round";
+                    clearInterval(drawInterval);
+                    ctx.lineTo(e.offsetX, e.offsetY);
+                    ctx.stroke();
+                    flag = false;
+                    position = [e.offsetX, e.offsetY];
+                    recordAction('end', position);
+                }
+                count++;
+                console.log(count);
+                stopRecording();
+            };
+            // レコーディング中のデータ追加
+            function recordAction(action, pos) {
+                if (!recording) return; // レコーディング中でない場合は何もしない
+                record.actions.push({
+                    action: action,
+                    timestamp: Date.now() - recordStartTime,
+                    coordinates: {
+                        x: pos[0] / canvas.width,
+                        y: pos[1] / canvas.height
+                    }
+                });
+            };
+            // drawアクションの設定
+            function draw(){
+                if (position != preposition) {
+                    ctx.strokeStyle = "#FF0000";
+                    ctx.lineWidth = 3;
+                    ctx.lineCap = "round";
+                    ctx.lineTo(position[0],position[1]);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(position[0],position[1]);
+                    preposition = position;
+                    count++;
+                    console.log(count);
+                    recordAction('move', position);
+                };
+            };
+            // 再生機能
+            function playbackActions(actions) {
+                if (!actions || actions.length === 0) return;
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // キャンバスをクリア
+                let i = 0;
+                let startTime = actions[0].timestamp; // 最初のアクションのタイムスタンプを開始時刻とする
+                function drawStep() {
+                    ctx.strokeStyle = "#00FF00";
+                    ctx.lineWidth = 3;
+                    ctx.lineCap = "round";
+                    let action = actions[i];
+                    let nextAction = actions[i + 1];
+                    switch (action.action) {
+                        case 'start':
+                            ctx.beginPath();
+                            ctx.moveTo(action.coordinates.x*canvas.width, action.coordinates.y*canvas.height);
+                            break;
+                        case 'move':
+                            if (nextAction && nextAction.action !== 'end') {
+                                ctx.lineTo(action.coordinates.x*canvas.width, action.coordinates.y*canvas.height);
+                                ctx.stroke();
+                            };
+                            break;
+                        case 'end':
+                            ctx.lineTo(action.coordinates.x*canvas.width, action.coordinates.y*canvas.height);
+                            ctx.stroke();
+                            ctx.closePath();
+                            break;
+                    };
+                    i++; // 次のアクションへ
+                    if (i < actions.length) {
+                        let delay = nextAction.timestamp - action.timestamp;
+                        setTimeout(drawStep, delay); // 次のステップのための遅延を設定
+                    };
+                };
+                drawStep(); // 再生開始
+            };
+            // データ授受
+            actionButton.addEventListener('click', () => {
+                if (!record.actions) return;
+                let keyword = document.getElementById('keywordInput').value.trim();
+                let actionSelect = document.getElementById("actionSelect");
+                let actionIndex = actionSelect.selectedIndex;
+                let actionText = actionSelect.options[actionIndex].text;
+                if (keyword.length > 0 && actionText === "おぼえる") {
+                    record.keyword = document.getElementById('keywordInput').value;
+                    let dataToSend = record;
+                    console.log("Sending data:", dataToSend);
+                    fetch(setAcctionsURL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(dataToSend)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Success:', data);
+                        alert("おぼえました");
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+                } else if (keyword.length > 0 && actionText === "おもいだす") {
+                    let keyword = document.getElementById('keywordInput').value.trim();
+                    let messageToSend = {
+                        keyword: keyword
+                    };
+                    console.log("messageToSend:",messageToSend);
+                    fetch(getAcctionsURL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(messageToSend)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Success:', data);
+                        record.actions = data
+                        playbackActions(record.actions);
+                        alert("おもいだしました");
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+                };
+            });
+            // クリア
+            reloadButton.addEventListener('click', () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+            // リスト取得
+            openList.addEventListener('click', () => {
+            let data = {
+                "key": "openList"
+            };
+            let param = {
+                method: "POST",
+                body: JSON.stringify(data)   
+            };
+            console.log(param);
+            fetch('https://b7d68rz3a3.execute-api.us-east-1.amazonaws.com/openList', param)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                })
+                .catch(error => {
+                    console.error('msg: ', error);
+                });
+            });
+        </script>
+        <!--------------JavaScript-------------->
+    </body>
+</html>
