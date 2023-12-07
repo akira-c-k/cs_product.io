@@ -287,8 +287,8 @@
                 startRecording();
                 flag = true;
                 ctx.beginPath();
-                ctx.moveTo(e.touches[0].pageX, e.touches[0].pageY);
-                position = [e.touches[0].pageX, e.touches[0].pageY];
+                ctx.moveTo(e.offsetX, e.offsetY);
+                position = [e.offsetX, e.offsetY];
                 preposition = position;
                 drawInterval = setInterval(draw, 20);
                 count++;
@@ -298,8 +298,8 @@
             // touchMoveアクションの設定
             function touchMove(e) {
                 if (flag == true) {
-                    position = [e.touches[0].pageX, e.touches[0].pageY];
-                };
+                    position = [e.offsetX, e.offsetY];
+                }
             };
             // touchEndアクションの設定
             function touchEnd(e) {
@@ -308,10 +308,10 @@
                     ctx.lineWidth = 3;
                     ctx.lineCap = "round";
                     clearInterval(drawInterval);
-                    ctx.lineTo(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
+                    ctx.lineTo(e.offsetX, e.offsetY);
                     ctx.stroke();
                     flag = false;
-                    position = [e.changedTouches[0].pageX, e.changedTouches[0].pageY];
+                    position = [e.offsetX, e.offsetY];
                     recordAction('end', position);
                 };
                 count++;
