@@ -220,9 +220,15 @@
                 ctx.strokeStyle = "#FF0000";
                 ctx.lineWidth = 3;
                 ctx.lineCap = "round";
-                canvas.onmousedown = mouseDown;
-                canvas.onmousemove = mouseMove;
-                canvas.onmouseup = mouseUp;
+                // canvas.onmousedown = mouseDown;
+                // canvas.onmousemove = mouseMove;
+                // canvas.onmouseup = mouseUp;
+                canvas.addEventListener('mousedown', mouseDown);
+                canvas.addEventListener('mousemove', mouseMove);
+                canvas.addEventListener('mouseup', mouseUp);
+                canvas.addEventListener('touchstart', touchStart);
+                canvas.addEventListener('touchmove', touchMove);
+                canvas.addEventListener('touchend', touchEnd);
             };
             // レコーディングの開始
             function startRecording() {
