@@ -308,10 +308,10 @@
                     ctx.lineWidth = 3;
                     ctx.lineCap = "round";
                     clearInterval(drawInterval);
-                    ctx.lineTo(e.offsetX, e.offsetY);
+                    ctx.lineTo(e.touches[0].pageX - canvas.offsetLeft, e.touches[0].pageY - canvas.offsetTop);
                     ctx.stroke();
                     flag = false;
-                    position = [e.offsetX, e.offsetY];
+                    position = [e.touches[0].pageX - canvas.offsetLeft, e.touches[0].pageY - canvas.offsetTop];
                     recordAction('end', position);
                 };
                 count++;
