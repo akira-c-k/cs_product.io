@@ -4,11 +4,6 @@
         <meta charset="utf-8">
         <title>ふでメモ</title>
         <style>
-            body {
-                margin: 0px;
-                overflow: hidden;
-                background-color: #FFFFBB;
-            }
             @keyframes pulse {
                 from {
                     opacity: 1;
@@ -56,6 +51,12 @@
             }
             .pulse-bubble-3 {
                 animation: pulse .4s ease .4s infinite alternate;
+            }
+            
+            body {
+                margin: 0px;
+                overflow: hidden;
+                background-color: #FFFFBB;
             }
 
             #canvas {
@@ -505,7 +506,7 @@
                 })
                 .catch((error) => {
                     console.error('Error:', error);
-                });
+                })
                 .finally(() => {
                     hideLoading();
                 });
@@ -557,7 +558,7 @@
                     })
                     .catch((error) => {
                         console.error('Error:', error);
-                    });
+                    })
                     .finally(() => {
                         hideLoading();
                     });
