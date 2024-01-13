@@ -40,6 +40,7 @@
 
 ### 240114 : 小森メモ
    * [komori](https://akira-c-k.github.io/cs_product.io/fudememo.html)
+   * [suda](https://akira-c-k.github.io/cs_product.io/drawing_20240113.html)
          
 ### Backlogs
 * 231204 : 覚える・思い出す・みる・消すで色はそれぞれ変えたほうがいい（色が同じものに意識が引っ張られてしまう）、そもそも「みる」は必要かは検討
