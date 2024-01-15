@@ -235,6 +235,7 @@
             let position = [0,0];
             let preposition;
             let drawInterval;
+            let currentDrawStepTimeout;
             
             const setButton = document.getElementById("setButton");
             const getButton = document.getElementById("getButton");
@@ -416,7 +417,10 @@
             // 再生機能
             function playbackActions(actions) {
                 if (!actions || actions.length === 0) return;
+                if (currentDrawStepTimeout) clearTimeout(currentDrawStepTimeout);
+
                 ctx.clearRect(0, 0, canvas.width, canvas.height); // キャンバスをクリア
+
                 let i = 0;
                 let startTime = actions[0].timestamp; // 最初のアクションのタイムスタンプを開始時刻とする
                 function drawStep() {
@@ -445,7 +449,7 @@
                     i++; // 次のアクションへ
                     if (i < actions.length) {
                         let delay = nextAction.timestamp - action.timestamp;
-                        setTimeout(drawStep, delay); // 次のステップのための遅延を設定
+                        currentDrawStepTimeout=setTimeout(drawStep, delay); // 次のステップのための遅延を設定
                     };
                 };
                 drawStep(); // 再生開始
